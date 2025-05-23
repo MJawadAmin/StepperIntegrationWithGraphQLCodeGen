@@ -1,6 +1,14 @@
 // @/utils/transformStepsInfo.ts
 
-import type { StepInfo } from "@/store/useStepperStore";
+import type { StepInfo } from "@/queries/generated/graphql";
+
+interface PaymentData {
+  payment_type?: string;
+  amount?: number;
+  payment_date?: string;
+  pay_order_number?: string;
+  demand_draft?: string;
+}
 
 export interface TransformedStepInfo {
   applicantInfo: {
@@ -298,7 +306,7 @@ export const transformStepsInfo = (stepsInfo: any[] = []) => {
     let cleanPayments = [];
 
     if (Array.isArray(step.payment)) {
-      cleanPayments = step.payment.map((pay) => ({
+      cleanPayments = step.payment.map((pay: PaymentData) => ({
         payment_type: pay?.payment_type || "",
         amount: pay?.amount || 0,
         payment_date: pay?.payment_date || "",

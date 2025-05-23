@@ -1,10 +1,27 @@
+// app/protected/otp/page.tsx
 "use client"
 import { useState, useEffect } from "react"
 import { gql, useMutation } from "@apollo/client"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import type React from "react" // Added import for React
+// Removed 'type React from "react"' - it's usually not needed for basic React usage in Next.js 13+
 import { useUserStore } from "@/store/useUserStore"
+
+// Define a type for the mutation response data
+interface VerifyOtpResponse {
+  clientVerifyOtp: {
+    emailVerified: boolean
+    phoneVerified: boolean
+    status: string
+  }
+}
+
+// Define a type for the mutation variables
+interface VerifyOtpVariables {
+  email: string
+  phoneOtp: string
+  emailOtp: string
+}
 
 const CLIENT_VERIFY_OTP_MUTATION = gql`
   mutation ClientVerifyOtp(
@@ -33,18 +50,20 @@ const OTPVerification = () => {
   const [errorMessage, setErrorMessage] = useState("")
   const [email, setEmail] = useState("")
 
-  const [verifyOtp, { loading }] = useMutation(CLIENT_VERIFY_OTP_MUTATION)
+  // Apply types to useMutation
+  const [verifyOtp, { loading }] = useMutation<VerifyOtpResponse, VerifyOtpVariables>(CLIENT_VERIFY_OTP_MUTATION);
 
   const { user_email } = useUserStore();
+
   useEffect(() => {
-    // Example: Retrieve email from localStorage
-    const storedEmail = user_email;
-    if (storedEmail) {
-      setEmail(storedEmail);
-      console.log("Email found in localStorage");
+    // Include user_email in the dependency array for exhaustive-deps warning
+    if (user_email) {
+      setEmail(user_email); // Use user_email directly from store
+      console.log("Email found in store");
+    } else {
+      console.error("Email not found in store");
     }
-    else {console.error("Email not found in localStorage")}
-  }, [])
+  }, [user_email]); // Add user_email to the dependency array
 
   useEffect(() => {
     if (timeLeft > 0) {
@@ -57,16 +76,24 @@ const OTPVerification = () => {
     }
   }, [timeLeft])
 
-  const handleOtpChange = (index: number, value: string, type: "email" | "phone") => {
-    const newOtp = type === "email" ? [...emailOtp] : [...phoneOtp]
-    newOtp[index] = value.replace(/[^0-9]/g, "")
-    type === "email" ? setEmailOtp(newOtp) : setPhoneOtp(newOtp)
+const handleOtpChange = (index: number, value: string, type: "email" | "phone") => {
+  const newOtp = type === "email" ? [...emailOtp] : [...phoneOtp];
+  newOtp[index] = value.replace(/[^0-9]/g, "");
+
+  // FIX: Use an if/else statement to avoid the no-unused-expressions error
+  if (type === "email") {
+    setEmailOtp(newOtp);
+  } else {
+    setPhoneOtp(newOtp);
   }
+};
 
   const handleResendOtp = () => {
     setTimeLeft(60)
     setIsResendDisabled(true)
     // Add resend OTP mutation here if available
+    // Example: call a resend mutation
+    // resendOtpMutation({ variables: { email: email } });
   }
 
   const verifyOTP = async (e: React.FormEvent) => {
@@ -90,13 +117,18 @@ const OTPVerification = () => {
         },
       })
 
-      if (data?.clientVerifyOtp?.status == "Approved") {
+      if (data?.clientVerifyOtp?.status === "Approved") { // Use strict equality ===
         router.push("/auth/sign-in")
       } else {
         setErrorMessage("OTP verification failed. Please check the codes.")
       }
-    } catch (error: any) {
-      setErrorMessage(error.message || "An error occurred during verification")
+    } catch (error: unknown) { // Use 'unknown' instead of 'any' for better type safety
+      // Check if error is an instance of Error
+      if (error instanceof Error) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage("An unknown error occurred during verification");
+      }
     }
   }
 
@@ -114,9 +146,9 @@ const OTPVerification = () => {
             <div className="flex flex-col items-center justify-center">
               <div className="bg-white w-full">
                 <h2 className="text-lg lg:text-2xl font-semibold text-center text-[#F76300]">OTP Verification</h2>
-                <p className="mt-2 text-xl tracking-wide text-center text-[#F76300]">We've sent you an OTP code</p>
+                <p className="mt-2 text-xl tracking-wide text-center text-[#F76300]">We&apos;ve sent you an OTP code</p> {/* FIX: Escaped apostrophe */}
                 <p className="mt-1 text-[10px] tracking-tight lg:mt-2 text-center text-[#828282]">
-                  To complete your account setup, enter the code we've sent to
+                  To complete your account setup, enter the code we&apos;ve sent to {/* FIX: Escaped apostrophe */}
                 </p>
                 <p className="mt-1 text-center text-[#1E1E1E] lg:mt-2 text-sm font-semibold">
                   {email} and 923333333333
@@ -167,7 +199,7 @@ const OTPVerification = () => {
                 </p>
 
                 <div className="flex items-center gap-2 w-4/5 lg:w-11/12 !mx-auto">
-                  <p className="text-center text-[#828282] text-xs">Didn't Receive OTP?</p>
+                  <p className="text-center text-[#828282] text-xs">Didn&apos;t Receive OTP?</p> {/* FIX: Escaped apostrophe */}
                   <button
                     type="button"
                     className="text-[#F76300] text-sm font-semibold"
@@ -208,5 +240,4 @@ const OTPVerification = () => {
   )
 }
 
-export default OTPVerification
-
+export default OTPVerification;

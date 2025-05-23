@@ -21,30 +21,15 @@ type FeeInfo = {
   demand_draft: string;
 };
 
-// Define a type for the payment objects stored in the stepper
-type PaymentInfo = {
-  payment_type: "companyinfo" | "modelinfo";
-  amount: number;
-  payment_date: string;
-  pay_order_number: string;
-  demand_draft: string;
-};
-
-// Define a type for the structure of a single step in steps_info that might contain payment
-type StepperStep = {
-  payment?: PaymentInfo[];
-  // ... other properties a step might have
-};
-
-interface FeeProps {
-  title: string;
-  productPrice: string;
+interface FeeProps { 
+  title: string; 
+  productPrice: string; 
   onChange: (info: FeeInfo) => void;
   initialData: FeeInfo;
 }
 
-interface FileUploadProps {
-  onFileChange: (fileName: string) => void;
+interface FileUploadProps { 
+  onFileChange: (fileName: string) => void; 
   inputId: string;
   value: string;
 }
@@ -71,19 +56,8 @@ const FileUpload = memo(({ onFileChange, inputId, value }: FileUploadProps) => {
   );
 });
 
-FileUpload.displayName = 'FileUpload'; // Add display name
-
 const FeeSection = memo(({ title, productPrice, onChange, initialData }: FeeProps) => {
   const [info, setInfo] = useState<FeeInfo>(initialData);
-
-  // Update internal state if initialData changes (e.g., when data loads from store)
-  useEffect(() => {
-    // Only update if initialData is different from current info to prevent infinite loops
-    // and unnecessary re-renders. Use deep comparison if initialData can be complex objects.
-    if (!isEqual(info, initialData)) {
-      setInfo(initialData);
-    }
-  }, [initialData, info]);
 
   const handleInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -115,32 +89,32 @@ const FeeSection = memo(({ title, productPrice, onChange, initialData }: FeeProp
         </div>
         <div className="mb-4">
           <label className="block">Pay Order No:</label>
-          <input
-            placeholder="123"
-            className="mt-1 p-2 border rounded-md w-full h-9 border-gray-300"
-            required
-            name="payOrderNo"
-            value={info.payOrderNo}
-            onChange={handleInput}
+          <input 
+            placeholder="123" 
+            className="mt-1 p-2 border rounded-md w-full h-9 border-gray-300" 
+            required 
+            name="payOrderNo" 
+            value={info.payOrderNo} 
+            onChange={handleInput} 
           />
         </div>
         <div className="mb-4">
           <label className="block">Date</label>
-          <input
-            className="mt-1 p-2 border rounded-md w-full h-9 border-gray-300"
-            required
-            type="date"
-            name="date"
-            value={info.date}
-            onChange={handleInput}
+          <input 
+            className="mt-1 p-2 border rounded-md w-full h-9 border-gray-300" 
+            required 
+            type="date" 
+            name="date" 
+            value={info.date} 
+            onChange={handleInput} 
           />
         </div>
       </div>
       <div className="mt-10">
         <p>Upload Demand Draft / Pay Order Evidence (PDF, JPG, PNG Only)</p>
-        <FileUpload
-          onFileChange={handleFile}
-          inputId={`fileInput${title.replace(/\s+/g, "")}`}
+        <FileUpload 
+          onFileChange={handleFile} 
+          inputId={`fileInput${title.replace(/\s+/g, "")}`} 
           value={info.demand_draft}
         />
       </div>
@@ -148,11 +122,9 @@ const FeeSection = memo(({ title, productPrice, onChange, initialData }: FeeProp
   );
 });
 
-FeeSection.displayName = 'FeeSection'; // Add display name
-
 const Step6 = () => {
   const { steps_info, updateStepper } = useStepperStore();
-
+  
   // Fetch fees from API
   const { data: productFeeData } = useQuery(GET_SETTINGS, {
     variables: { key: "Product Registration fee" },
@@ -165,75 +137,59 @@ const Step6 = () => {
   });
 
   // Parse fee values with fallbacks
-  const productFee = useMemo(() =>
-    parseInt(productFeeData?.clientGetSettingsByKey?.value || "100000"),
+  const productFee = useMemo(() => 
+    parseInt(productFeeData?.clientGetSettingsByKey?.value || "100000"), 
     [productFeeData]
   );
 
-  const modelFee = useMemo(() =>
-    parseInt(modelFeeData?.clientGetSettingsByKey?.value || "13000"),
+  const modelFee = useMemo(() => 
+    parseInt(modelFeeData?.clientGetSettingsByKey?.value || "13000"), 
     [modelFeeData]
   );
 
   // Format currency display
-  const formatCurrency = useCallback((amount: number) =>
-    `PKR ${amount.toLocaleString("en-PK")}`,
+  const formatCurrency = useCallback((amount: number) => 
+    `PKR ${amount.toLocaleString("en-PK")}`, 
     []
   );
 
   // Find the step index with payment info
-  const stepIndex = useMemo(() =>
-    steps_info.findIndex(step => step.payment),
+  const stepIndex = useMemo(() => 
+    steps_info.findIndex(step => step.payment), 
     [steps_info]
   );
 
   // Memoize payments array
-  // Explicitly tell TypeScript the possible types, then provide a fallback.
-  const payments: PaymentInfo[] = useMemo(() => {
-    // Access steps_info at stepIndex, which could be undefined if stepIndex is -1
-    const currentStep = steps_info[stepIndex] as StepperStep | undefined;
-    // Safely access 'payment' property, providing an empty array as fallback
-    return currentStep?.payment || [];
-  }, [steps_info, stepIndex]);
+  const payments = useMemo(() => 
+    steps_info[stepIndex]?.payment || [], 
+    [steps_info, stepIndex]
+  );
 
-  // Get initial payment data, ensuring string fallbacks
-  const companyPayment = useMemo(() => {
-    const foundPayment = payments.find(p => p.payment_type === "companyinfo");
-    return foundPayment ? {
-      payment_type: "companyinfo",
-      amount: foundPayment.amount,
-      payment_date: foundPayment.payment_date ?? "", // Ensure string
-      pay_order_number: foundPayment.pay_order_number ?? "", // Ensure string
-      demand_draft: foundPayment.demand_draft ?? "" // Ensure string
-    } : {
+  // Get initial payment data
+  const companyPayment = useMemo(() => 
+    payments.find(p => p.payment_type === "companyinfo") || {
       payment_type: "companyinfo",
       amount: productFee,
       payment_date: "",
       pay_order_number: "",
       demand_draft: ""
-    };
-  }, [payments, productFee]);
+    }, 
+    [payments, productFee]
+  );
 
-  const modelPayment = useMemo(() => {
-    const foundPayment = payments.find(p => p.payment_type === "modelinfo");
-    return foundPayment ? {
-      payment_type: "modelinfo",
-      amount: foundPayment.amount,
-      payment_date: foundPayment.payment_date ?? "", // Ensure string
-      pay_order_number: foundPayment.pay_order_number ?? "", // Ensure string
-      demand_draft: foundPayment.demand_draft ?? "" // Ensure string
-    } : {
+  const modelPayment = useMemo(() => 
+    payments.find(p => p.payment_type === "modelinfo") || {
       payment_type: "modelinfo",
       amount: modelFee,
       payment_date: "",
       pay_order_number: "",
       demand_draft: ""
-    };
-  }, [payments, modelFee]);
+    }, 
+    [payments, modelFee]
+  );
 
   const updatePayment = useCallback((type: "companyinfo" | "modelinfo", newData: FeeInfo, amount: number) => {
-    // Ensure the array type for 'p' in map
-    const updatedPayments = payments.map((p: PaymentInfo) =>
+    const updatedPayments = payments.map(p => 
       p.payment_type === type ? {
         ...p,
         amount,
@@ -244,7 +200,7 @@ const Step6 = () => {
     );
 
     // Add if not exists
-    if (!updatedPayments.some((p: PaymentInfo) => p.payment_type === type)) {
+    if (!updatedPayments.some(p => p.payment_type === type)) {
       updatedPayments.push({
         payment_type: type,
         amount,
@@ -255,21 +211,10 @@ const Step6 = () => {
     }
 
     const newStepsInfo = [...steps_info];
-    // Ensure the structure exists before attempting to update
-    if (stepIndex !== -1 && newStepsInfo[stepIndex]) { // Check stepIndex is valid
-      newStepsInfo[stepIndex] = {
-        ...newStepsInfo[stepIndex],
-        payment: updatedPayments
-      };
-    } else {
-      // If stepIndex doesn't exist or is -1, it means no step with payment was found initially.
-      // You might want to decide how to handle this.
-      // For this case, we'll assume a new step should be added at the end if not found.
-      // This is a simplification; your store logic might require a more specific insertion.
-      newStepsInfo.push({
-        payment: updatedPayments // Assuming payment is the only property for this new step
-      });
-    }
+    newStepsInfo[stepIndex] = {
+      ...newStepsInfo[stepIndex],
+      payment: updatedPayments
+    };
 
     if (!isEqual(newStepsInfo, steps_info)) {
       updateStepper({ steps_info: newStepsInfo });
@@ -279,9 +224,9 @@ const Step6 = () => {
   return (
     <form className="flex flex-col gap-5 text-sm">
       <h1>7. Specify the information about deposited non-refundable Fees payable to NEECA*</h1>
-
-      <FeeSection
-        title="Company Registration Fee"
+      
+      <FeeSection 
+        title="Company Registration Fee" 
         productPrice={formatCurrency(productFee)}
         onChange={(info) => updatePayment("companyinfo", info, productFee)}
         initialData={{
@@ -291,8 +236,8 @@ const Step6 = () => {
         }}
       />
 
-      <FeeSection
-        title="Model Registration Fee"
+      <FeeSection 
+        title="Model Registration Fee" 
         productPrice={formatCurrency(modelFee)}
         onChange={(info) => updatePayment("modelinfo", info, modelFee)}
         initialData={{

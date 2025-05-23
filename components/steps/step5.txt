@@ -249,6 +249,8 @@ const Step5 = () => {
       refetch();
     }
   }, [labType, refetch]);
+
+
   return (
     <form className="w-full text-sm">
       <h1 className="text-center mb-2">9. The following documents should be attached with the application</h1>
@@ -283,7 +285,7 @@ const Step5 = () => {
               onChange={handleLabSelect}
               className="w-full sm:w-80 css-b62m3t-container"
               // Add value prop to display the selected lab from formData
-              value={labOptions.find((option: { value: string; label: string }) => option.value === formData.lab_id)}
+              value={labOptions.find(option => option.value === formData.lab_id)}
             />
           </div>
         )}
@@ -329,7 +331,7 @@ const Step5 = () => {
                   onChange={handleLabSelect}
                   className="w-full sm:w-80 css-b62m3t-container"
                   // Add value prop to display the selected lab from formData
-                  value={labOptions.find((option: { value: string; label: string }) => option.value === formData.lab_id)}
+                  value={labOptions.find(option => option.value === formData.lab_id)}
                 />
               </div>
             )}
@@ -343,7 +345,7 @@ const Step5 = () => {
                 options={countryOptions}
                 placeholder="Select Country"
                 onChange={handleCountrySelect}
-                value={countryOptions.find((option: { value: string; label: string }) =>
+                value={countryOptions.find(option =>
                   option.label === formData.lab_country
                 )}
                 className="w-full sm:w-80 css-b62m3t-container"
@@ -356,7 +358,7 @@ const Step5 = () => {
                 onChange={handleLabSelect}
                 className="w-full sm:w-80 css-b62m3t-container"
                 // Add value prop to display the selected lab from formData
-                value={labOptions.find((option: { value: string; label: string }) => option.value === formData.lab_id)}
+                value={labOptions.find(option => option.value === formData.lab_id)}
               />
             </div>
           </div>

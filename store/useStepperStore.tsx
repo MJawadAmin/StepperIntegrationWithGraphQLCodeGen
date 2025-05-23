@@ -1,6 +1,6 @@
 import { create } from "zustand"
 
-interface ApplicantInfo {
+export interface ApplicantInfo {
   company_name: string
   company_address: string
   company_country: string
@@ -30,15 +30,15 @@ interface ApplicantInfo {
   product_brochure: string
 }
 
-interface LabReport {
+export interface LabReport {
     test_report: string | null;
     report_from: string | null;
     lab_user_name: string | null;
     lab_id: string | null;
     lab_country: string | null;
-  }
+}
 
-interface Refrigerator {
+export interface Refrigerator {
   brand_name: string
   model_name: string
   manufacture_date: string
@@ -52,7 +52,7 @@ interface Refrigerator {
   energy_efficiency_features: string
 }
 
-interface Motor {
+export interface Motor {
   manufacturer_name: string
   country_of_manufacture: string
   brand_name: string
@@ -75,7 +75,7 @@ interface Motor {
   motor_insulation: string
 }
 
-interface LedLight {
+export interface LedLight {
   brand_name: string
   model_number: string
   bar_code: string
@@ -101,43 +101,46 @@ interface LedLight {
   warranty_years: number
 }
 
-interface Fan {
-  model_name: string
-  rating: string
-  size_capacity: number
-  colors: string
-  ps_mark: boolean
-  energy_efficiency_features: string
+export interface Fan {
+  id: string;
+  model_info_id: string;
+  model_name?: string;
+  rating?: string;
+  size_capacity?: number;
+  colors?: string;
+  ps_mark?: boolean;
+  energy_efficiency_features?: string;
+  specify_number?: string;
 }
 
-interface Ac {
-  id: string
-  model_info_id: string
-  brand_name: string
-  model_name: string
-  manufacture_date: string
-  origin_country: string
-  kw_rating: number
-  annual_energy_consumption: number
-  cooling_capacity: string
-  refrigerant_type: string
-  colors: string
-  ps_mark: boolean
-  energy_efficiency_features: string
-  specify_number: string
+export interface AC {
+  id: string;
+  model_info_id: string;
+  brand_name?: string;
+  model_name?: string;
+  manufacture_date?: string;
+  origin_country?: string;
+  kw_rating?: number;
+  annual_energy_consumption?: number;
+  cooling_capacity?: string;
+  refrigerant_type?: string;
+  colors?: string;
+  ps_mark?: boolean;
+  energy_efficiency_features?: string;
+  specify_number?: string;
 }
 
-interface ModelInfo {
-  model_name: string
-  estimated_production_per_anum: string
-  refrigerator: Refrigerator
-  motor: Motor
-  ledLight: LedLight
-  fan: Fan
-  ac: Ac
+export interface ModelInfo {
+  model_name?: string;
+  estimated_production_per_anum?: string;
+  refrigerator?: Refrigerator;
+  motor?: Motor;
+  ledLight?: LedLight;
+  fan?: Fan;
+  ac?: AC;
 }
 
-interface Payment {
+export interface Payment {
   payment_type: string
   amount: number
   payment_date: string
@@ -146,25 +149,25 @@ interface Payment {
 }
 
 export interface StepInfo {
-  applicantInfo: ApplicantInfo
-  modelInfo: ModelInfo
-  payment: Payment[],
-  labReport: LabReport | null; // Add labReport to StepInfo
+  applicantInfo?: ApplicantInfo;
+  modelInfo?: ModelInfo;
+  labReport?: LabReport;
+  payment?: Payment[];
 }
 
 interface StepperState {
-  id: string
-  count: number
-  success: boolean
-  message: string
-  product_id: string
-  stepper_type: string
-  current_step: string
-  steps_info: StepInfo[]
-  updateStepper: (newState: Partial<Omit<StepperState, "updateStepper">>) => void
-  setCurrentStep: (step: number) => void
-  clearStore: () => void
-  updateStepInfo: (stepInfo: StepInfo, stepIndex: number) => void
+  id?: string;
+  count?: number;
+  success?: boolean;
+  message?: string;
+  current_step?: number;
+  product_id?: string;
+  stepper_type?: string;
+  steps_info?: Partial<StepInfo>[];
+  updateStepper: (newState: Partial<Omit<StepperState, "updateStepper" | "setCurrentStep" | "clearStore" | "updateStepInfo">>) => void;
+  setCurrentStep: (step: number) => void;
+  clearStore: () => void;
+  updateStepInfo: (stepIndex: number, newStepInfo: Partial<StepInfo>) => void;
 }
 
 export const useStepperStore = create<StepperState>((set) => ({
@@ -174,7 +177,7 @@ export const useStepperStore = create<StepperState>((set) => ({
   message: "",
   product_id: "",
   stepper_type: "",
-  current_step: "1",
+  current_step: 1,
   steps_info: [
     {
       applicantInfo: {
@@ -270,12 +273,15 @@ export const useStepperStore = create<StepperState>((set) => ({
           warranty_years: 0,
         },
         fan: {
+          id: "",
+          model_info_id: "",
           model_name: "",
           rating: "",
           size_capacity: 0,
           colors: "",
           ps_mark: false,
           energy_efficiency_features: "",
+          specify_number: "",
         },
         ac: {
           id: "",
@@ -312,15 +318,15 @@ export const useStepperStore = create<StepperState>((set) => ({
       ],
       labReport: {
         test_report: "",
-        report_from:  "",
-        lab_user_name:"",
-        lab_id:   "",
-        lab_country:  "",
-        },
+        report_from: "",
+        lab_user_name: "",
+        lab_id: "",
+        lab_country: "",
+      },
     },
   ],
   updateStepper: (newState) => set((state) => ({ ...state, ...newState })),
-  setCurrentStep: (step) => set({ current_step: step.toString() }),
+  setCurrentStep: (step) => set({ current_step: step }),
   clearStore: () =>
     set({
       id: "",
@@ -329,14 +335,15 @@ export const useStepperStore = create<StepperState>((set) => ({
       message: "",
       product_id: "",
       stepper_type: "",
-      current_step: "1",
+      current_step: 1,
       steps_info: [],
     }),
-    updateStepInfo: (stepInfo: StepInfo, stepIndex: number) =>
-        set((state) => ({
-          steps_info: state.steps_info.map((step, index) =>
-            index === stepIndex ? { ...step, ...stepInfo } : step
-          ),
-        })),
+  updateStepInfo: (stepIndex: number, newStepInfo: Partial<StepInfo>) =>
+    set((state) => ({
+      ...state,
+      steps_info: state.steps_info?.map((step, index) =>
+        index === stepIndex ? { ...step, ...newStepInfo } : step
+      ) || [],
+    })),
 }))
 

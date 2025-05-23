@@ -97,7 +97,7 @@ const Step4: React.FC = () => {
     if (!isEqual(newStepsInfo, steps_info)) {
       updateStepper({ steps_info: newStepsInfo });
     }
-  }, [formData, steps_info, applicantInfoIndex, existingApplicantInfo, updateStepper]); // Added existingApplicantInfo and updateStepper
+  }, [formData, steps_info, applicantInfoIndex]);
 
   const handleFileChange = (name: keyof FormState, fileName: string) => {
     setFormData(prev => ({ ...prev, [name]: fileName }));

@@ -1,7 +1,7 @@
 "use client";
 import type React from "react";
 import { Suspense, lazy, useEffect, useState, useRef } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation"; // Keep this import
 import { gql, useApolloClient, useQuery } from "@apollo/client";
 import { useUserStore } from "@/store/useUserStore";
 import { useStepperStore } from "@/store/useStepperStore";
@@ -9,7 +9,12 @@ import { fetchStepperData } from "@/services/stepperService";
 import { handleApolloError } from "@/utils/handleApolloError";
 import { transformStepsInfo } from "@/utils/transformStepsInfo";
 import { toast } from "react-hot-toast";
-import { useClientUpdateStepperMutation } from "@/queries/generated/graphql";
+import {
+  useClientUpdateStepperMutation,
+  StepperResponse,
+  StepInfo,
+} from "@/queries/generated/graphql";
+import { NormalizedCacheObject } from "@apollo/client";
 
 // GraphQL
 const GET_CURRENT_STEP = gql`
@@ -35,8 +40,8 @@ const steps: { [key: number]: React.ComponentType } = {
 
 const StepperPage = () => {
   const searchParams = useSearchParams();
-  const router = useRouter();
-  const client = useApolloClient();
+  const router = useRouter(); // This is AppRouterInstance
+  const client = useApolloClient() as import("@apollo/client").ApolloClient<NormalizedCacheObject>;
 
   const { jwt, setJwt } = useUserStore();
   const { current_step, setCurrentStep, steps_info } = useStepperStore();
@@ -44,13 +49,11 @@ const StepperPage = () => {
   const [isSaving, setIsSaving] = useState(false);
 
   const stepperType = "product";
-  const productId = "NEERS-PID-2";
+  const productId = "NEERS-PID-2"; // This should ideally come from a prop or dynamic route
 
   const didInitRef = useRef(false);
 
-  // Use the generated mutation hook from codegen
-  const [updateStepperMutation, { loading: mutationLoading }] =
-    useClientUpdateStepperMutation();
+  const [updateStepperMutation] = useClientUpdateStepperMutation();
 
   // Auth check
   useEffect(() => {
@@ -67,7 +70,7 @@ const StepperPage = () => {
     context: { headers: { Authorization: `Bearer ${jwt}` } },
     skip: !jwt,
     fetchPolicy: "network-only",
-    onError: (err) => handleApolloError(err, router),
+    onError: (err) => handleApolloError(err, router), // No 'as any' needed here now
   });
 
   // Load stepper data on mount
@@ -80,10 +83,10 @@ const StepperPage = () => {
           client,
           stepperType,
           productId,
-          router
+          router  // No 'as any' needed here now
         );
         if (data) {
-          const serverStep = parseInt(data.current_step) || 1;
+          const serverStep = parseInt(data.current_step || "1");
           const urlStep = Number(searchParams?.get("step")) || 1;
           const newStep = serverStep || urlStep;
 
@@ -91,14 +94,19 @@ const StepperPage = () => {
             setCurrentStep(newStep);
           }
 
-          // Avoid pushing to same step again
           const currentUrlStep = Number(searchParams?.get("step")) || 1;
           if (newStep !== currentUrlStep) {
             router.push(`?step=${newStep}`);
           }
+
+          useStepperStore.getState().updateStepper({
+            ...data,
+            current_step: data.current_step || undefined,
+            steps_info: data.steps_info?.filter(Boolean) as StepInfo[] || undefined,
+          });
         }
         didInitRef.current = true;
-      } catch (err) {
+      } catch (err: unknown) {
         console.error("Failed to initialize stepper:", err);
         toast.error("Failed to load form data");
       }
@@ -126,17 +134,14 @@ const StepperPage = () => {
 
   const StepComponent = steps[currentStep];
 
-  // Updated handleSave function using the mutation hook
   const handleSave = async (action = "save") => {
     setIsSaving(true);
 
     try {
-      // Get all data from the store
-      const { steps_info } = useStepperStore.getState();
+      const { steps_info: currentStepsInfo } = useStepperStore.getState();
 
-      // Log what's being sent for debugging
       console.log(`Saving step ${currentStep} with action: ${action}`);
-      console.log("Sending steps_info:", steps_info);
+      console.log("Sending steps_info:", currentStepsInfo);
 
       const result = await updateStepperMutation({
         variables: {
@@ -144,16 +149,18 @@ const StepperPage = () => {
           action: action,
           currentStep: current_step,
           stepperType: stepperType,
-          stepsInfo: transformStepsInfo(steps_info),
+          stepsInfo: transformStepsInfo(currentStepsInfo),
         },
       });
 
       if (result?.data?.clientUpdateStepper?.success) {
         toast.success("Saved successfully");
 
-        // Update the store with response
         useStepperStore.getState().updateStepper({
-          ...result.data.clientUpdateStepper,
+          ...(result.data.clientUpdateStepper as StepperResponse),
+          current_step:
+            result.data.clientUpdateStepper.current_step || undefined,
+          steps_info: result.data.clientUpdateStepper.steps_info?.filter(Boolean) as StepInfo[] || undefined,
         });
       } else {
         console.error(
@@ -166,22 +173,24 @@ const StepperPage = () => {
           }`
         );
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Save failed:", err);
-      toast.error("Failed to save changes");
+      if (err instanceof Error) {
+        toast.error(`Failed to save changes: ${err.message}`);
+      } else {
+        toast.error("Failed to save changes");
+      }
     } finally {
       setIsSaving(false);
     }
   };
 
-  // Updated navigation handler using the mutation hook
   const handleNavigation = async (direction: "prev" | "next") => {
     const newStep = direction === "next" ? currentStep + 1 : currentStep - 1;
     if (newStep < 1 || newStep > 6) return;
 
     setIsSaving(true);
 
-    // Add at the beginning of handleNavigation
     console.log("Navigation triggered:", direction);
     console.log("Current steps_info:", steps_info);
     console.log(
@@ -191,15 +200,12 @@ const StepperPage = () => {
     );
 
     try {
-      // Ensure steps_info is defined and has proper structure
       let stepsToTransform = steps_info;
 
-      // If steps_info is undefined or empty, use the initial state from the store
       if (!stepsToTransform || !stepsToTransform.length) {
         stepsToTransform = useStepperStore.getState().steps_info;
       }
 
-      // Log data for debugging
       console.log("Using steps_info:", stepsToTransform);
 
       const result = await updateStepperMutation({
@@ -213,12 +219,13 @@ const StepperPage = () => {
       });
 
       if (result?.data?.clientUpdateStepper?.success) {
-        // Update local store
         useStepperStore.getState().updateStepper({
-          ...result.data.clientUpdateStepper,
+          ...(result.data.clientUpdateStepper as StepperResponse),
+          current_step:
+            result.data.clientUpdateStepper.current_step || undefined,
+          steps_info: result.data.clientUpdateStepper.steps_info?.filter(Boolean) as StepInfo[] || undefined,
         });
 
-        // Navigate to the new step
         setCurrentStep(newStep);
         router.push(`?step=${newStep}`);
       } else {
@@ -228,15 +235,18 @@ const StepperPage = () => {
           }`
         );
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Navigation failed:", err);
-      toast.error(`Failed to navigate: ${err.message}`);
+      if (err instanceof Error) {
+        toast.error(`Failed to navigate: ${err.message}`);
+      } else {
+        toast.error("Failed to navigate: An unknown error occurred.");
+      }
     } finally {
       setIsSaving(false);
     }
   };
 
-  // UI States
   if (!jwt)
     return (
       <div className="w-full text-center p-8">Redirecting to login...</div>
@@ -296,5 +306,4 @@ const StepperPage = () => {
     </Suspense>
   );
 };
-
 export default StepperPage;

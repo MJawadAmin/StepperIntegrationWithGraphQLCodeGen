@@ -1,9 +1,34 @@
 import { create } from "zustand";
-import {
+import type {
   StepInfo,
+  ApplicantInfo as GraphQLApplicantInfo,
+  ModelInfo as GraphQLModelInfo,
+  LabReport as GraphQLLabReport,
+  Payment as GraphQLPayment,
+  Fan as GraphQLFan,
+  Ac
 } from "@/queries/generated/graphql";
 
-interface StepperState {
+// Re-export the GraphQL types
+export type {
+  StepInfo,
+  ApplicantInfo as GraphQLApplicantInfo,
+  ModelInfo as GraphQLModelInfo,
+  LabReport as GraphQLLabReport,
+  Payment as GraphQLPayment,
+  Fan as GraphQLFan,
+  Ac
+};
+
+// Local interfaces that extend GraphQL types
+export interface ApplicantInfo extends GraphQLApplicantInfo {}
+export interface ModelInfo extends GraphQLModelInfo {}
+export interface LabReport extends GraphQLLabReport {}
+export interface Payment extends GraphQLPayment {}
+export interface Fan extends GraphQLFan {}
+export interface AC extends Ac {}
+
+export interface StepperState {
   id?: string | null;
   current_step: string;
   product_id?: string | null;

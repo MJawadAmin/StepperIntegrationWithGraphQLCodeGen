@@ -1,42 +1,42 @@
-"use client"
-import Image from "next/image"
-import { useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { useUserStore } from "@/store/useUserStore"
-import { gql, useQuery, useApolloClient } from "@apollo/client"
-import { checkProductStatus } from "@/services/stepperService"
+"use client";
+import Image from "next/image";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useUserStore } from "@/store/useUserStore";
+import { gql, useQuery, useApolloClient, ApolloClient, NormalizedCacheObject } from "@apollo/client";
+import { checkProductStatus } from "@/services/stepperService";
 
 interface Product {
-  id: string
-  name: string
-  description: string
-  image: string
+  id: string;
+  name: string;
+  description: string;
+  image: string;
 }
 
 interface UserProfile {
   clientGetProfile: {
     user: {
-      id: string
-      name: string
-      phone: string
-      email: string
-      status: string
-    }
-  }
+      id: string;
+      name: string;
+      phone: string;
+      email: string;
+      status: string;
+    };
+  };
 }
 
 const GET_USER_PROFILE = gql`
   query User {
-  clientGetProfile {
-    user {
-      id
-      name
-      phone
-      email
+    clientGetProfile {
+      user {
+        id
+        name
+        phone
+        email
+      }
     }
   }
-}
-`
+`;
 
 const GET_PRODUCTS_QUERY = gql`
   query ClientGetProducts {
@@ -47,54 +47,42 @@ const GET_PRODUCTS_QUERY = gql`
       image
     }
   }
-`
+`;
 
 const ProductsDashboard = () => {
-  const router = useRouter()
-  const { user_name, jwt, setJwt, setUserName, setUserEmail, setUserPhone } = useUserStore()
-  const client = useApolloClient()
+  const router = useRouter();
+  const { user_name, jwt, setJwt, setUserName, setUserEmail, setUserPhone } = useUserStore();
+  const client = useApolloClient() as ApolloClient<NormalizedCacheObject>;
 
   // Authentication handling
   useEffect(() => {
     const verifyAuth = () => {
-      const storedToken = localStorage.getItem("NECCA_AUTH_TOKEN")
+      const storedToken = localStorage.getItem("NECCA_AUTH_TOKEN");
       if (!storedToken) {
-        router.push("/auth/sign-in")
-        return
+        router.push("/auth/sign-in");
+        return;
       }
-      if (!jwt) setJwt(storedToken)
-    }
-    verifyAuth()
-  }, [jwt, setJwt, router])
+      if (!jwt) setJwt(storedToken);
+    };
+    verifyAuth();
+  }, [jwt, setJwt, router]);
 
   // User profile query
- // Modify your user profile query
-const { loading: userLoading, error: userError, data: userData } = useQuery<UserProfile>(GET_USER_PROFILE, {
-  context: {
-    headers: {
-      Authorization: jwt,
+  const { loading: userLoading, error: userError, data: userData } = useQuery<UserProfile>(GET_USER_PROFILE, {
+    context: {
+      headers: {
+        Authorization: jwt,
+      },
     },
-  },
-  skip: !jwt,
-  onError: (error) => {
-    console.error('Profile Error:', error); // Add detailed logging
-    if (error.networkError) {
-      console.log('Network Error:', error.networkError);
+    skip: !jwt,
+    onError: (error) => {
+      console.error('Profile Error:', error);
+      if (error.message.includes("Unauthorized")) {
+        localStorage.removeItem("NECCA_AUTH_TOKEN");
+        router.push("/auth/sign-in");
+      }
     }
-    if (error.graphQLErrors) {
-      error.graphQLErrors.forEach(({ message, locations, path }) =>
-        console.log(
-          `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
-        )
-      );
-    }
-    
-    if (error.message.includes("Unauthorized")) {
-      localStorage.removeItem("NECCA_AUTH_TOKEN");
-      router.push("/auth/sign-in");
-    }
-  }
-});
+  });
 
   // Products query
   const { loading: productsLoading, error: productsError, data: productsData } = useQuery<{ clientGetProducts: Product[] }>(GET_PRODUCTS_QUERY, {
@@ -104,39 +92,41 @@ const { loading: userLoading, error: userError, data: userData } = useQuery<User
       },
     },
     skip: !jwt
-  })
+  });
 
   // Set user data
   useEffect(() => {
     if (userData?.clientGetProfile?.user) {
-      const { name, email, phone } = userData.clientGetProfile.user
-      setUserName(name)
-      setUserEmail(email)
-      setUserPhone(phone)
+      const { name, email, phone } = userData.clientGetProfile.user;
+      setUserName(name);
+      setUserEmail(email);
+      setUserPhone(phone);
     }
-  }, [userData, setUserName, setUserEmail, setUserPhone])
+  }, [userData, setUserName, setUserEmail, setUserPhone]);
 
   const handleLogout = () => {
-    localStorage.removeItem("NECCA_AUTH_TOKEN")
-    setJwt("")
-    router.push("/auth/sign-in")
+    localStorage.removeItem("NECCA_AUTH_TOKEN");
+    setJwt("");
+    router.push("/auth/sign-in");
+  };
+const handleOnClick = async (productId: string) => {
+  try {
+    await checkProductStatus(
+      client,       // This should now be ApolloClient<NormalizedCacheObject>
+      productId,
+      router        // <--- Pass the router object directly, not a partial object
+    );
+  } catch (error) {
+    console.error("Error checking product status:", error);
+  } finally {
+    router.push(`/protected/${productId}/stepper?step=1`);
   }
+};
 
-  const handleOnClick = (productId: string) => {
-    try {
-    checkProductStatus( client, productId, router);
-    } catch (error) {
-      console.error("Error checking product status:", error);
-      }
-      finally {
-    router.push("/protected/NEERS-PID-2/stepper?step=1");
-    }
-  }
-
-  if (!jwt) return <div className="w-full text-center p-8">Redirecting to login...</div>
-  if (userLoading || productsLoading) return <div className="w-full text-center mt-8">Loading...</div>
-  if (userError) return <div className="w-full text-center mt-8 text-red-500">Error: {userError.message}</div>
-  if (productsError) return <div className="w-full text-center mt-8 text-red-500">Errorjjj: {productsError.message}</div>
+  if (!jwt) return <div className="w-full text-center p-8">Redirecting to login...</div>;
+  if (userLoading || productsLoading) return <div className="w-full text-center mt-8">Loading...</div>;
+  if (userError) return <div className="w-full text-center mt-8 text-red-500">Error: {userError.message}</div>;
+  if (productsError) return <div className="w-full text-center mt-8 text-red-500">Error: {productsError.message}</div>;
 
   return (
     <div className="w-full flex justify-center bg-white h-full relative">
@@ -170,8 +160,7 @@ const { loading: userLoading, error: userError, data: userData } = useQuery<User
               <div
                 key={index}
                 className="hover:scale-105 transition-transform duration-300 rounded-md my-4 group"
-                // onClick={() => handleOnClick(product.id)}
-                onClick={() => handleOnClick("NEERS-PID-2")}
+                onClick={() => handleOnClick(product.id)}
               >
                 <div className="bg-white rounded-md relative flex w-full">
                   {/* Product Image */}
@@ -207,7 +196,7 @@ const { loading: userLoading, error: userError, data: userData } = useQuery<User
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default ProductsDashboard
+export default ProductsDashboard;
