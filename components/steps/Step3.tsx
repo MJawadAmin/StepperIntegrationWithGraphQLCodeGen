@@ -1,9 +1,11 @@
 "use client";
 import { useState, memo, useCallback, useMemo, useEffect } from 'react';
 import 'react-phone-input-2/lib/style.css';
-import { Country } from "country-state-city"; // Import Country for country options
+import { Country } from "country-state-city";
 import { useStepperStore } from "@/store/useStepperStore";
 import isEqual from 'lodash.isequal';
+// Corrected import: 'Ac' with a lowercase 'c'
+import { Ac } from "@/queries/generated/graphql";
 
 type FormState = {
   brand_name: string;
@@ -16,26 +18,28 @@ type FormState = {
   refrigerant_type: string;
   colors: string;
   ps_mark: boolean;
-  specify_number: string; // Add specify_number to formData
+  specify_number: string;
   energy_efficiency_features: string;
   estimated_production_per_anum: string;
+  // These fields are mandatory 'string' in your `Ac` type, so they must be strings here.
+  id: string;
+  model_info_id: string;
 };
 
-const Step3 = memo(() => {
+const Step3 = memo(function Step3() { // Added function name for ESLint
   const { steps_info, updateStepper } = useStepperStore();
-  
-  // Memoize index calculation
-  const modelInfoIndex = useMemo(() => 
+
+  const modelInfoIndex = useMemo(() =>
     steps_info.findIndex((step) => step.modelInfo !== undefined),
     [steps_info]
   );
 
-  // Memoize model info to prevent unnecessary reference changes
-  const existingModelInfo = useMemo(() => 
+  const existingModelInfo = useMemo(() =>
     steps_info[modelInfoIndex]?.modelInfo || {},
     [steps_info, modelInfoIndex]
   );
 
+  // Initialize formData ensuring all fields are present and correctly typed
   const [formData, setFormData] = useState<FormState>({
     brand_name: existingModelInfo?.ac?.brand_name || '',
     model_name: existingModelInfo?.ac?.model_name || '',
@@ -47,23 +51,34 @@ const Step3 = memo(() => {
     refrigerant_type: existingModelInfo?.ac?.refrigerant_type || '',
     colors: existingModelInfo?.ac?.colors || '',
     ps_mark: existingModelInfo?.ac?.ps_mark || false,
-    specify_number: existingModelInfo?.ac?.specify_number || '', // Initialize specify_number
+    specify_number: existingModelInfo?.ac?.specify_number || '',
     energy_efficiency_features: existingModelInfo?.ac?.energy_efficiency_features || '',
     estimated_production_per_anum: existingModelInfo?.estimated_production_per_anum || '',
+    // Ensure 'id' and 'model_info_id' are initialized with empty strings if undefined
+    id: existingModelInfo?.ac?.id || '',
+    model_info_id: existingModelInfo?.ac?.model_info_id || '',
   });
 
   // Update Zustand store when formData changes
   useEffect(() => {
-    const updatedStepsInfo = [...steps_info];
-    
-    if (modelInfoIndex === -1) return;
+    if (modelInfoIndex === -1) {
+      console.warn("modelInfo not found at expected index. Cannot update.");
+      return;
+    }
 
-    const updatedModelInfo = {
-      ...existingModelInfo, // Preserve existing fields
-      model_name: formData.model_name,
-      estimated_production_per_anum: formData.estimated_production_per_anum,
-      ac: {
-        ...existingModelInfo.ac,
+    // Explicitly type currentAC as Partial<Ac> (using the correct 'Ac' casing)
+    // This tells TypeScript that 'ac' might be an incomplete version of your `Ac` type.
+    const currentAC: Partial<Ac> = existingModelInfo.ac || {};
+
+    // Construct updatedAC. We now explicitly cast this to `Ac` (the full type)
+    // and ensure all its non-optional fields are provided with strings.
+    const updatedAC: Ac = {
+      // These are non-optional in your 'Ac' type, so they must be strings.
+      // Fallback to formData value, then to empty string if still undefined.
+      id: currentAC.id || formData.id || '',
+      model_info_id: currentAC.model_info_id || formData.model_info_id || '',
+      
+      // Other fields from formData. These are mostly optional in 'Ac' type.
       brand_name: formData.brand_name,
       model_name: formData.model_name,
       manufacture_date: formData.manufacture_date,
@@ -76,29 +91,37 @@ const Step3 = memo(() => {
       ps_mark: formData.ps_mark,
       specify_number: formData.specify_number,
       energy_efficiency_features: formData.energy_efficiency_features,
-      }
+      
+      // Include the __typename if it's mandatory in your `Ac` type from GraphQL.
+      // If it's optional, you can omit this line or provide it as 'Ac' | undefined.
+      __typename: currentAC.__typename || "AC", // Assuming "AC" is the literal string value
     };
 
-    // Create new array only if changes exist
-    const newStepsInfo = updatedStepsInfo.map((step, index) => 
-      index === modelInfoIndex 
+    const updatedModelInfo = {
+      ...existingModelInfo, // Preserve other modelInfo fields
+      model_name: formData.model_name, // Ensure this top-level field is updated
+      estimated_production_per_anum: formData.estimated_production_per_anum, // Ensure this top-level field is updated
+      ac: updatedAC, // Use the carefully constructed updatedAC
+    };
+
+    const newStepsInfo = steps_info.map((step, index) =>
+      index === modelInfoIndex
         ? { ...step, modelInfo: updatedModelInfo }
         : step
     );
 
-    // Deep compare to prevent unnecessary updates
     if (!isEqual(newStepsInfo, steps_info)) {
       updateStepper({ steps_info: newStepsInfo });
-      console.log("Step 3 updated", steps_info);
-      // console.log("Step 3 updated", newStepsInfo);
+      console.log("Step 3 updated", newStepsInfo);
     }
-  }, [formData, steps_info, modelInfoIndex]);
+  }, [formData, steps_info, modelInfoIndex, existingModelInfo, updateStepper]);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === "number" ? Number.parseFloat(value) : value,
+      // Handle number conversion, ensure it's not NaN for number types
+      [name]: type === "number" ? (Number.parseFloat(value) || 0) : value,
     }));
   }, []);
 

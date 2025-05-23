@@ -1,11 +1,10 @@
 "use client";
 import { memo, Suspense, useEffect, useState, useCallback } from "react";
 import { useStepperStore } from "@/store/useStepperStore";
-// import isEqual from "lodash.isequal"; // REMOVED: No longer used
+import isEqual from "lodash.isequal";
 
 const Step1 = memo(function Step1() {
   const [selectedOption, setSelectedOption] = useState("");
-  // Destructure steps_info here so ESLint knows it's a dependency for useEffect
   const { steps_info, updateStepper } = useStepperStore();
 
   // Load data from store when component mounts - only once
@@ -19,13 +18,7 @@ const Step1 = memo(function Step1() {
       // Default to "no" if not set
       setSelectedOption("no");
     }
-    // ESLint warning: React Hook useEffect has a missing dependency: 'steps_info'.
-    // Given the comment "Load data from store when component mounts - only once",
-    // we intend this to run only on initial mount using the initial steps_info.
-    // If you ever intend to react to changes in steps_info for this logic,
-    // add `steps_info` to the dependency array.
-    // For pure initialization, suppressing is acceptable if you understand the implications.
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- run once on mount for initial state
+  }, []); // Empty dependency array to run only once on mount
 
   // Update store when user agreement changes
   const handleAgreementChange = useCallback(
@@ -59,7 +52,7 @@ const Step1 = memo(function Step1() {
       // Update the store with new state
       updateStepper({ steps_info: currentStepsInfo });
     },
-    [updateStepper] // updateStepper is a stable function provided by Zustand, so this is correct.
+    [updateStepper]
   );
 
   return (

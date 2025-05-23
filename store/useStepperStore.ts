@@ -1,32 +1,31 @@
 import { create } from "zustand";
 import {
   StepInfo,
-  ApplicantInfo,
-  LabReport,
-  ModelInfo,
-  Payment,
 } from "@/queries/generated/graphql";
 
 interface StepperState {
-  id?: string;
+  id?: string | null;
   current_step: string;
-  product_id?: string;
-  stepper_type?: string;
+  product_id?: string | null;
+  stepper_type?: string | null;
   steps_info: Array<Partial<StepInfo>>;
-  success?: boolean;
-  message?: string;
-  count?: number;
-  userAgreement?: boolean; // Added this field
-  isSubmissionSuccessful?: boolean; // Added this field
+  success?: boolean | null;
+  message?: string | null;
+  count?: number | null;
+  userAgreement?: boolean;
+  isSubmissionSuccessful?: boolean;
 
   // Actions
   setCurrentStep: (step: number) => void;
   updateStepper: (data: Partial<StepperState>) => void;
   resetStepper: () => void;
-  resetAgreementStore: () => void; // Added this action
+  resetAgreementStore: () => void;
 }
 
-const initialState = {
+const initialState: Omit<
+  StepperState,
+  "setCurrentStep" | "updateStepper" | "resetStepper" | "resetAgreementStore"
+> = {
   current_step: "1",
   steps_info: [
     {
@@ -74,9 +73,11 @@ const initialState = {
           colors: "",
           ps_mark: false,
           energy_efficiency_features: "",
-          specify_number: "", // Added missing field
+          specify_number: "",
         },
         ac: {
+          id: "",
+          model_info_id: "",
           brand_name: "",
           model_name: "",
           manufacture_date: "",
@@ -88,25 +89,27 @@ const initialState = {
           colors: "",
           ps_mark: false,
           energy_efficiency_features: "",
-          specify_number: "", // Added missing field
+          specify_number: "",
         },
         fan: {
-          size_capacity: "",
-          rating: 0,
+          id: "",
+          model_info_id: "",
+          size_capacity: 0,
+          rating: "",
           ps_mark: false,
           model_name: "",
           energy_efficiency_features: "",
           colors: "",
-          specify_number: "", // Added missing field
+          specify_number: "",
         },
         motor: {
           manufacturer_name: "",
           country_of_manufacture: "",
           brand_name: "",
-          first_manufactured_year: "",
+          first_manufactured_year: 0,
           model_number: "",
           replaces_other_model: false,
-          date_marked: "",
+          date_marked: null, // *** FIXED HERE ***
           website_url: "",
           phase_type: "",
           rated_power_output: 0,
@@ -120,8 +123,8 @@ const initialState = {
           enclosure_rating: "",
           motor_design: "",
           motor_insulation: "",
-          state_model: "", // Added missing field
-          date_format: "", // Added missing field
+          state_model: "",
+          date_format: "",
         },
         ledLight: {
           brand_name: "",
@@ -141,7 +144,7 @@ const initialState = {
           flux: 0,
           efficacy: 0,
           color_temperature: 0,
-          chromaticity_tolerance: "",
+          chromaticity_tolerance: 0,
           color_rendering_index: 0,
           rated_lifetime: 0,
           mercury_content: 0,
@@ -179,19 +182,16 @@ const initialState = {
 };
 
 export const useStepperStore = create<StepperState>((set) => ({
-  // Initial state
   ...initialState,
 
-  // Actions
   setCurrentStep: (step: number) => set({ current_step: step.toString() }),
 
-  updateStepper: (data) =>
+  updateStepper: (data: Partial<StepperState>) =>
     set((state) => {
       console.log("Updating stepper store with:", data);
       return {
         ...state,
         ...data,
-        // Always ensure steps_info is an array with at least the initial structure
         steps_info:
           data.steps_info &&
           Array.isArray(data.steps_info) &&
@@ -203,13 +203,11 @@ export const useStepperStore = create<StepperState>((set) => ({
 
   resetStepper: () => set(() => ({ ...initialState })),
 
-  // Added resetAgreementStore function
   resetAgreementStore: () =>
     set({
-      id: null,
+      id: undefined,
       userAgreement: false,
       current_step: "1",
-      // Transform the flat fields into the steps_info structure needed for the API
       steps_info: [
         {
           applicantInfo: {
@@ -276,7 +274,7 @@ export const useStepperStore = create<StepperState>((set) => ({
               frame_code: "",
               first_manufactured_year: 0,
               enclosure_rating: "",
-              date_marked: false,
+              date_marked: null, // *** FIXED HERE ***
               country_of_manufacture: "",
               brand_name: "",
               state_model: "",
@@ -308,6 +306,8 @@ export const useStepperStore = create<StepperState>((set) => ({
               bar_code: "",
             },
             fan: {
+              id: "",
+              model_info_id: "",
               size_capacity: 0,
               rating: "",
               ps_mark: false,
@@ -317,6 +317,8 @@ export const useStepperStore = create<StepperState>((set) => ({
               specify_number: "",
             },
             ac: {
+              id: "",
+              model_info_id: "",
               refrigerant_type: "",
               ps_mark: false,
               origin_country: "",
