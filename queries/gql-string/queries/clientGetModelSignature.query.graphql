@@ -1,0 +1,10 @@
+query ClientGetModelSignature($clientGetModelSignatureId: String!) {
+  clientGetModelSignature(id: $clientGetModelSignatureId) {
+    id
+    title
+    product_id
+    img_url
+    createdAt
+    updatedAt
+  }
+}

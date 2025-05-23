@@ -1,0 +1,5 @@
+mutation ClientResubmitApplication($productId: String!) {
+  clientResubmitApplication(product_id: $productId) {
+    message
+  }
+}

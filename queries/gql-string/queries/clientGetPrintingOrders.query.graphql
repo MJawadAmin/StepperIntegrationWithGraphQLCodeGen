@@ -1,0 +1,156 @@
+query ClientGetPrintingOrders(
+  $productId: String!
+  $filter: PrintingOrderFilterInput
+  $page: Int
+  $limit: Int
+  $sortBy: String
+  $sortOrder: String
+) {
+  clientGetPrintingOrders(
+    product_id: $productId
+    filter: $filter
+    page: $page
+    limit: $limit
+    sortBy: $sortBy
+    sortOrder: $sortOrder
+  ) {
+    orders {
+      id
+      product_id
+      total_price
+      buyer_id
+      seller_id
+      address
+      status
+      total_quantity
+      createdAt
+      updatedAt
+      StickerOrders {
+        id
+        printing_id
+        model_id
+        quantity
+        price
+        created_at
+        updated_at
+        ModelInfo {
+          id
+          user_id
+          product_id
+          model_name
+          status
+          refrigerator {
+            model_info_id
+            brand_name
+            model_name
+            manufacture_date
+            origin_country
+            kw_rating
+            annual_energy_consumption
+            total_volume_litres
+            refrigerant_type
+            colors
+            ps_mark
+            specify_number
+            energy_efficiency_features
+          }
+          motor {
+            model_info_id
+            manufacturer_name
+            country_of_manufacture
+            brand_name
+            first_manufactured_year
+            model_number
+            replaces_other_model
+            date_marked
+            website_url
+            phase_type
+            rated_power_output
+            rated_voltage
+            rated_frequency
+            number_of_poles
+            rated_speed
+            motor_duty
+            mounting_code
+            frame_code
+            enclosure_rating
+            motor_design
+            motor_insulation
+            state_model
+            date_format
+          }
+          ledLight {
+            model_info_id
+            brand_name
+            model_number
+            bar_code
+            lamp_type
+            country_of_origin
+            manufacture_date
+            lamp_length
+            max_diameter
+            min_voltage
+            max_voltage
+            rated_frequency
+            rated_power
+            power_factor
+            standby_power
+            flux
+            efficacy
+            color_temperature
+            chromaticity_tolerance
+            color_rendering_index
+            rated_lifetime
+            mercury_content
+            risk_group
+            warranty_years
+          }
+          fan {
+            id
+            model_info_id
+            model_name
+            rating
+            size_capacity
+            colors
+            ps_mark
+            specify_number
+            energy_efficiency_features
+          }
+          ac {
+            id
+            model_info_id
+            brand_name
+            model_name
+            manufacture_date
+            origin_country
+            kw_rating
+            annual_energy_consumption
+            cooling_capacity
+            refrigerant_type
+            colors
+            ps_mark
+            specify_number
+            energy_efficiency_features
+          }
+          createdAt
+        }
+        qr
+      }
+      Payments {
+        id
+        user_id
+        product_id
+        modelinfo_id
+        payment_type
+        amount
+        payment_date
+        pay_order_number
+        demand_draft
+        status
+      }
+    }
+    count
+    totalPages
+    currentPage
+  }
+}

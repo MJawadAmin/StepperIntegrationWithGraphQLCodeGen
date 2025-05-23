@@ -1,0 +1,14 @@
+query ClientGetSettingsByKey($key: String!) {
+  clientGetSettingsByKey(key: $key) {
+    id
+    key
+    value
+    createdAt
+    updatedAt
+    voucher_enabled
+    voucher_type
+    voucher_validity
+    voucher_status
+    voucher_imageurl
+  }
+}

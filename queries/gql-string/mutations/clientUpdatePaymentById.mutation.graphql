@@ -1,0 +1,5 @@
+mutation ClientUpdatePaymentById($data: PaymentInput!, $paymentId: String) {
+  clientUpdatePaymentById(data: $data, payment_id: $paymentId) {
+    message
+  }
+}

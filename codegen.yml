@@ -1,0 +1,15 @@
+overwrite: true
+schema: "https://dev-server.neers.com.pk/graphql"
+documents:
+  - "queries/gql-string/queries/*.graphql"
+  - "queries/gql-string/mutations/*.graphql"
+generates:
+  queries/generated/graphql.ts:
+    plugins:
+      - "typescript"
+      - "typescript-operations"
+      - "typescript-react-apollo"
+    config:
+      withHooks: true
+      withHOC: false
+      withComponent: false

@@ -1,0 +1,5 @@
+mutation ClientUpdateLabReportById($data: LabReportInput!, $reportId: String) {
+  clientUpdateLabReportById(data: $data, report_id: $reportId) {
+    message
+  }
+}

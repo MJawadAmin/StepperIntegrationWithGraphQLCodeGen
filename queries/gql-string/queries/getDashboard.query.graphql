@@ -1,0 +1,46 @@
+query ClientGetDashboard($productId: String!) {
+  clientGetDashboard(product_id: $productId) {
+    modelInfoCounts {
+      total
+      pending
+      approved
+      rejected
+    }
+    labReportCounts {
+      total
+      pending
+      approved
+      rejected
+    }
+    recentPayments {
+      id
+      payment_type
+      amount
+      payment_date
+      pay_order_number
+      demand_draft
+      status
+      reason
+      createdAt
+    }
+    recentModels {
+      id
+      model_name
+      size
+      colour
+      rating
+      has_ps_mark
+      specify_number
+      energy_consumption_details
+      estimated_annual_production
+      company_brochure
+      product_brochure
+      status
+      reason
+    }
+    annualCashInData {
+      month
+      amount
+    }
+  }
+}

@@ -1,0 +1,6 @@
+mutation ClientUpdateApplicantInfoById($infoId: String!, $data: UpdateApplicantInfoInput) {
+  clientUpdateApplicantInfoById(info_Id: $infoId, data: $data) {
+    success
+    message
+  }
+}

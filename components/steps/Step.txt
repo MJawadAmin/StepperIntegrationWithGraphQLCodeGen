@@ -1,0 +1,379 @@
+"use client";
+import { useState, memo, useCallback, useMemo, useEffect } from 'react';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
+import { Country, State, City } from "country-state-city";
+import { useStepperStore } from "@/store/useStepperStore";
+import isEqual from 'lodash.isequal';
+
+type FormState = {
+  companyName: string;
+  country: string;
+  state: string;
+  city: string;
+  companyAddress: string;
+  factoryCountry: string;
+  factoryState: string;
+  factoryCity: string;
+  factoryAddress: string;
+  factoryPhone: string;
+  officePhone: string;
+  managingDirectorName: string;
+  contactPersonName: string;
+  contactPersonPhone: string;
+  contactPersonMobile: string;
+  contactPersonEmail: string;
+  isRegisteredWithChamber: 'yes' | 'no';
+  isMemberOfAssociation: 'yes' | 'no';
+  registrationNumber: string;
+  registrationYear: string;
+  associationName: string;
+  membershipNumber: string;
+  membershipYear: string;
+  salesNetwork: string[];
+};
+
+const Step2 = memo(() => {
+  const { steps_info, updateStepper } = useStepperStore();
+  
+  // Memoize index calculation
+  const applicantInfoIndex = useMemo(() => 
+    steps_info.findIndex((step) => step.applicantInfo !== undefined),
+    [steps_info]
+  );
+
+  // Memoize applicant info to prevent unnecessary reference changes
+  const existingApplicantInfo = useMemo(() => 
+    steps_info[applicantInfoIndex]?.applicantInfo || {},
+    [steps_info, applicantInfoIndex]
+  );
+
+  const [formData, setFormData] = useState<FormState>({
+    companyName: existingApplicantInfo.company_name || '',
+    country: existingApplicantInfo.company_country || '',
+    state: existingApplicantInfo.company_province || '',
+    city: existingApplicantInfo.company_city || '',
+    companyAddress: existingApplicantInfo.company_address || '',
+    factoryCountry: existingApplicantInfo.factory_country || '',
+    factoryState: existingApplicantInfo.factory_province || '',
+    factoryCity: existingApplicantInfo.factory_city || '',
+    factoryAddress: existingApplicantInfo.factory_address || '',
+    factoryPhone: existingApplicantInfo.factory_telephone || '',
+    officePhone: existingApplicantInfo.office_telephone || '',
+    managingDirectorName: existingApplicantInfo.office_managing_director_name || '',
+    contactPersonName: existingApplicantInfo.contact_person_name || '',
+    contactPersonPhone: existingApplicantInfo.contact_person_phone || '',
+    contactPersonMobile: existingApplicantInfo.contact_person_telephone || '',
+    contactPersonEmail: existingApplicantInfo.contact_person_email || '',
+    isRegisteredWithChamber: existingApplicantInfo.registered_with_chamber ? 'yes' : 'no',
+    isMemberOfAssociation: existingApplicantInfo.member_of_association ? 'yes' : 'no',
+    registrationNumber: existingApplicantInfo.registration_number || '',
+    registrationYear: existingApplicantInfo.registration_year || '',
+    associationName: existingApplicantInfo.membership_name || '',
+    membershipNumber: existingApplicantInfo.membership_number || '',
+    membershipYear: existingApplicantInfo.membership_year || '',
+    salesNetwork: existingApplicantInfo.sales_network_regions || [],
+  });
+
+  // Update Zustand store when formData changes
+  useEffect(() => {
+    const updatedStepsInfo = [...steps_info];
+    
+    if (applicantInfoIndex === -1) return;
+
+    const updatedApplicantInfo = {
+      ...existingApplicantInfo, // Preserve existing fields
+        // Map form fields to store fields explicitly
+        company_name: formData.companyName,
+        company_country: formData.country,
+        company_province: formData.state,
+        company_city: formData.city,
+        company_address: formData.companyAddress,
+        factory_country: formData.factoryCountry,
+        factory_province: formData.factoryState,
+        factory_city: formData.factoryCity,
+        factory_address: formData.factoryAddress,
+        factory_telephone: formData.factoryPhone,
+        office_telephone: formData.officePhone,
+        office_managing_director_name: formData.managingDirectorName,
+        contact_person_name: formData.contactPersonName,
+        contact_person_phone: formData.contactPersonPhone,
+        contact_person_telephone: formData.contactPersonMobile,
+        contact_person_email: formData.contactPersonEmail,
+        registered_with_chamber: formData.isRegisteredWithChamber === 'yes',
+        registration_number: formData.registrationNumber,
+        registration_year: formData.registrationYear,
+        member_of_association: formData.isMemberOfAssociation === 'yes',
+        membership_name: formData.associationName,
+        membership_number: formData.membershipNumber,
+        membership_year: formData.membershipYear,
+        sales_network_regions: formData.salesNetwork,
+      };
+
+      // Create new array only if changes exist
+    const newStepsInfo = updatedStepsInfo.map((step, index) => 
+      index === applicantInfoIndex 
+        ? { ...step, applicantInfo: updatedApplicantInfo }
+        : step
+    );
+
+    // Deep compare to prevent unnecessary updates
+    if (!isEqual(newStepsInfo, steps_info)) {
+      updateStepper({ steps_info: newStepsInfo });
+    }
+  }, [formData, steps_info, applicantInfoIndex]);
+  
+  const countries = useMemo(() => Country.getAllCountries(), []);
+  const companyStates = useMemo(() => State.getStatesOfCountry(formData.country), [formData.country]);
+  const companyCities = useMemo(() => City.getCitiesOfState(formData.country, formData.state), [formData.country, formData.state]);
+  const factoryStates = useMemo(() => State.getStatesOfCountry(formData.factoryCountry), [formData.factoryCountry]);
+  const factoryCities = useMemo(() => City.getCitiesOfState(formData.factoryCountry, formData.factoryState), [formData.factoryCountry, formData.factoryState]);
+
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value,
+      ...(name === 'country' && { state: '', city: '' }),
+      ...(name === 'state' && { city: '' }),
+      ...(name === 'factoryCountry' && { factoryState: '', factoryCity: '' }),
+      ...(name === 'factoryState' && { factoryCity: '' })
+    }));
+  }, []);
+
+  const handlePhoneChange = useCallback((phone: string, name: string) => {
+    setFormData(prev => ({ ...prev, [name]: phone }));
+  }, []);
+
+  const regions = useMemo(() => [
+    'Throughout Pakistan', 'Azad Jammu & Kashmir', 'Balochistan',
+    'Gilgit Baltistan', 'Khyber Pakhtun Khwa', 'Punjab', 'Sindh'
+  ], []);
+
+  const handleCheckbox = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value, checked } = e.target;
+    setFormData(prev => {
+      let newSalesNetwork: string[];
+      if (value === "Throughout Pakistan") {
+        newSalesNetwork = checked ? regions : [];
+      } else {
+        newSalesNetwork = checked ? [...prev.salesNetwork, value] : prev.salesNetwork.filter(i => i !== value);
+        if (newSalesNetwork.length === regions.length - 1 && !newSalesNetwork.includes("Throughout Pakistan")) {
+          newSalesNetwork.push("Throughout Pakistan");
+        } else if (newSalesNetwork.length < regions.length) {
+          newSalesNetwork = newSalesNetwork.filter(i => i !== "Throughout Pakistan");
+        }
+      }
+      return { ...prev, salesNetwork: newSalesNetwork };
+    });
+  }, [regions]);
+
+  const handleRegistrationChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value,
+      ...(name === 'registrationYear' && { registrationYear: value.slice(0, 4) }),
+      ...(name === 'membershipYear' && { membershipYear: value.slice(0, 4) })
+    }));
+  }, []);
+
+  const SelectField = memo(({ id, label, options }: { id: keyof FormState; label: string; options: Array<{ code: string; name: string }> }) => (
+    <div className="w-full">
+      <label htmlFor={id}>{label}<span className="text-red-500">*</span></label>
+      <select id={id} name={id} value={formData[id]} onChange={handleChange} className="w-full h-9 border rounded p-2 border-zinc-300">
+        <option value="">Select {label.split('/')[0]}</option>
+        {options.map(opt => <option key={opt.code} value={opt.code}>{opt.name}</option>)}
+      </select>
+    </div>
+  ));
+
+  const RadioGroup = memo(({ name }: { name: keyof FormState }) => (
+    <div className="flex gap-5 mb-5">
+      {['yes', 'no'].map(opt => (
+        <div key={opt} className="flex items-center gap-2">
+          <input type="radio" id={`${name}${opt}`} name={name} value={opt} checked={formData[name] === opt} onChange={handleChange} className="accent-[#F76300] w-5 h-5" />
+          <label htmlFor={`${name}${opt}`}>{opt.toUpperCase()}</label>
+        </div>
+      ))}
+    </div>
+  ));
+
+  return (
+    <form className="p-2 w-full">
+      <div className="shadow-md border rounded-xl border-zinc-300 p-5 mb-5 text-sm">
+        <h2 className="text-xl mb-6">1. Applicant Information</h2>
+        <h3 className="text-lg mb-4">Company Information</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-center">
+          <div className="flex flex-col">
+            <label htmlFor="companyName">a. Name<span className="text-red-500">*</span></label>
+            <input id="companyName" name="companyName" value={formData.companyName} onChange={handleChange} placeholder="Name..." className="text-black w-full h-9 border rounded p-2 border-zinc-300" />
+          </div>
+          <SelectField id="country" label="Country" options={countries.map(c => ({ code: c.isoCode, name: c.name }))} />
+          <SelectField id="state" label="State/Province" options={companyStates.map(s => ({ code: s.isoCode, name: s.name }))} />
+          <SelectField id="city" label="City" options={companyCities.map(c => ({ code: c.name, name: c.name }))} />
+        </div>
+        <div className="w-full mt-5">
+          <label htmlFor="companyAddress">b. Company Address<span className="text-red-500">*</span></label>
+          <textarea id="companyAddress" name="companyAddress" value={formData.companyAddress} onChange={handleChange} placeholder="Company address..." className="mt-2 w-full h-24 border rounded p-2 text-black border-zinc-300" />
+        </div>
+      </div>
+
+      <div className="shadow-md border rounded-xl border-zinc-300 p-5 mb-5 text-sm">
+        <h3 className="text-xl mb-4">Factory Information</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-center">
+          <SelectField id="factoryCountry" label="Country" options={countries.map(c => ({ code: c.isoCode, name: c.name }))} />
+          <SelectField id="factoryState" label="State/Province" options={factoryStates.map(s => ({ code: s.isoCode, name: s.name }))} />
+          <SelectField id="factoryCity" label="City" options={factoryCities.map(c => ({ code: c.name, name: c.name }))} />
+        </div>
+        <div className="w-full mt-5">
+          <label htmlFor="factoryAddress">c. Factory/Firm Address<span className="text-red-500">*</span></label>
+          <textarea id="factoryAddress" name="factoryAddress" value={formData.factoryAddress} onChange={handleChange} placeholder="Factory address..." className="mt-2 w-full h-24 border rounded p-2 text-black border-zinc-300" />
+        </div>
+        <div className="w-full">
+          <h2 className="text-[15px] mt-5 mb-2">d. Telephone:</h2>
+          <div className="grid md:grid-cols-2 gap-5">
+            {['factoryPhone', 'officePhone'].map(field => (
+              <div key={field} className="w-full flex flex-col gap-2">
+                <label>{field.replace(/([A-Z])/g, ' $1').trim()}:<span className="text-red-500">*</span></label>
+                <PhoneInput country="pk" value={formData[field as keyof FormState] as string} onChange={phone => handlePhoneChange(phone, field)} inputProps={{ name: field, required: true }} />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="grid grid-cols-1 mt-5">
+          <label htmlFor="managingDirectorName">e. Managing Director Name<span className="text-red-500">*</span></label>
+          <input id="managingDirectorName" name="managingDirectorName" value={formData.managingDirectorName} onChange={handleChange} placeholder="Managing Director Name..." className="mt-2 text-black w-full h-9 border rounded p-2 border-zinc-300" />
+        </div>
+      </div>
+
+      <div className="shadow-md border rounded-xl border-zinc-300 p-5 mb-5 text-sm">
+        <h3 className="text-xl mb-4">Person Information</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-center">
+          <div className="flex flex-col">
+            <label htmlFor="contactPersonName">f. Contact Person Name<span className="text-red-500">*</span></label>
+            <input id="contactPersonName" name="contactPersonName" value={formData.contactPersonName} onChange={handleChange} placeholder="Contact Person Name..." className="text-black w-full h-9 border rounded mt-2 p-2 border-zinc-300" />
+          </div>
+          {['contactPersonPhone', 'contactPersonMobile'].map(field => (
+            <div key={field} className="w-full flex flex-col gap-2">
+              <label>{field.replace(/([A-Z])/g, ' $1').trim()}:<span className="text-red-500">*</span></label>
+              <PhoneInput country="pk" value={formData[field as keyof FormState] as string} onChange={phone => handlePhoneChange(phone, field)} inputProps={{ name: field, required: true }} />
+            </div>
+          ))}
+          <div className="flex flex-col">
+            <label htmlFor="contactPersonEmail">Email Address<span className="text-red-500">*</span></label>
+            <input id="contactPersonEmail" name="contactPersonEmail" type="email" value={formData.contactPersonEmail} onChange={handleChange} placeholder="Email Address..." className="text-black w-full h-9 border rounded mt-2 p-2 border-zinc-300" />
+          </div>
+        </div>
+      </div>
+
+      {['isRegisteredWithChamber', 'isMemberOfAssociation'].map(field => (
+        <div key={field} className="shadow-md border rounded-xl border-zinc-300 p-5 mb-5 text-sm">
+          <p className="mb-4">
+            {field === 'isRegisteredWithChamber' 
+              ? '2. Whether the firm/factory is registered with the local chamber of commerce and industry? If YES then fill the following;' 
+              : '3. Whether a member of any Association'}
+              {field === 'isRegisteredWithChamber' ? <span className="text-red-500">*</span> : ''}
+          </p>
+          <RadioGroup name={field as keyof FormState} />
+          {formData[field as keyof FormState] === 'yes' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {field === 'isRegisteredWithChamber' ? (
+                <>
+                  <div className="flex flex-col">
+                    <label>Registration #<span className="text-red-500">*</span></label>
+                    <input
+                      name="registrationNumber"
+                      value={formData.registrationNumber}
+                      onChange={handleRegistrationChange}
+                      placeholder="Enter Registration #"
+                      className="mt-2 text-black w-full h-9 border rounded p-2 border-zinc-300"
+                    />
+                    {!formData.registrationNumber && (
+                      <p className="text-red-500 text-sm mt-1">Registration number is required</p>
+                    )}
+                  </div>
+                  <div className="flex flex-col">
+                    <label>Year<span className="text-red-500">*</span></label>
+                    <input
+                      name="registrationYear"
+                      value={formData.registrationYear}
+                      onChange={handleRegistrationChange}
+                      placeholder="Enter year"
+                      className="mt-2 text-black w-full h-9 border rounded p-2 border-zinc-300"
+                      type="number"
+                      min="1900"
+                      max="2099"
+                    />
+                    {(formData.registrationYear.length !== 4 || !formData.registrationYear) && (
+                      <p className="text-red-500 text-sm mt-1">Please enter a valid 4-digit year</p>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex flex-col">
+                    <label>Name<span className="text-red-500">*</span></label>
+                    <input
+                      name="associationName"
+                      value={formData.associationName}
+                      onChange={handleRegistrationChange}
+                      placeholder="Enter Association Name"
+                      className="mt-2 text-black w-full h-9 border rounded p-2 border-zinc-300"
+                    />
+                    {!formData.associationName && (
+                      <p className="text-red-500 text-sm mt-1">Name is required</p>
+                    )}
+                  </div>
+                  <div className="flex flex-col">
+                    <label>Membership #<span className="text-red-500">*</span></label>
+                    <input
+                      name="membershipNumber"
+                      value={formData.membershipNumber}
+                      onChange={handleRegistrationChange}
+                      placeholder="Enter Membership #"
+                      className="mt-2 text-black w-full h-9 border rounded p-2 border-zinc-300"
+                    />
+                    {!formData.membershipNumber && (
+                      <p className="text-red-500 text-sm mt-1">Membership number is required</p>
+                    )}
+                  </div>
+                  <div className="flex flex-col">
+                    <label>Year<span className="text-red-500">*</span></label>
+                    <input
+                      name="membershipYear"
+                      value={formData.membershipYear}
+                      onChange={handleRegistrationChange}
+                      placeholder="Enter year"
+                      className="mt-2 text-black w-full h-9 border rounded p-2 border-zinc-300"
+                      type="number"
+                      min="1900"
+                      max="2099"
+                    />
+                    {(formData.membershipYear.length !== 4 || !formData.membershipYear) && (
+                      <p className="text-red-500 text-sm mt-1">Please enter a valid 4-digit year</p>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      ))}
+
+      <div className="shadow-md border rounded-xl border-zinc-300 p-5 text-sm">
+        <h3 className="mb-4">4. Sales Network<span className="text-red-500">*</span></h3>
+        <div className="flex flex-col gap-4">
+          {regions.map(region => (
+            <div key={region} className="flex items-center gap-3">
+              <input type="checkbox" id={region} name="salesNetwork" value={region} checked={formData.salesNetwork.includes(region)} onChange={handleCheckbox} className="w-5 h-5 border-2 rounded accent-[#F76300]" />
+              <label htmlFor={region} className="text-sm">{region}</label>
+            </div>
+          ))}
+        </div>
+      </div>
+    </form>
+  );
+});
+
+export default Step2;

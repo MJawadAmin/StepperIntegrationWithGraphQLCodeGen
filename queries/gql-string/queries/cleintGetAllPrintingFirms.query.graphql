@@ -1,0 +1,18 @@
+query ClientGetAllPrintingFirms {
+  clientGetAllPrintingFirms {
+    id
+    name
+    phone
+    email
+    country
+    cnic
+    father_name
+    profile_picture
+    role
+    status
+    address
+    mod_of_delivery
+    sticker_cost
+    lab_type
+  }
+}

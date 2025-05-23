@@ -1,0 +1,10 @@
+query PublicGetAllProducts {
+  publicGetAllProducts {
+    products {
+      id
+      name
+      description
+      image
+    }
+  }
+}

@@ -1,0 +1,10 @@
+query ClientGetNewsById($clientGetNewsByIdId: String!) {
+  clientGetNewsById(id: $clientGetNewsByIdId) {
+    id
+    title
+    content
+    type
+    createdAt
+    updatedAt
+  }
+}

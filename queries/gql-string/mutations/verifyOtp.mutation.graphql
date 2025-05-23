@@ -1,0 +1,7 @@
+mutation ClientVerifyOtp($email: String!, $phoneOtp: String!, $emailOtp: String!) {
+  clientVerifyOtp(email: $email, phoneOtp: $phoneOtp, emailOtp: $emailOtp) {
+    phoneVerified
+    emailVerified
+    status
+  }
+}

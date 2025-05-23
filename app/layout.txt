@@ -1,0 +1,39 @@
+import ApolloWrapper from "@/utils/ApolloProvider";
+import type { Metadata } from "next";
+import { Poppins } from "next/font/google";  // Changed from Geist to Poppins
+import "./globals.css";
+// import Navbar from "@/components/Navbar";
+// import Footer from "@/components/Footer";
+
+// Configure Poppins font
+const poppins = Poppins({
+  weight: ['300', '400', '500', '600', '700'], // Specify required weights
+  subsets: ["latin"],
+  variable: '--font-poppins', // CSS variable name
+});
+
+export const metadata: Metadata = {
+  title: "Neeca Sample",
+  description: "Neeca Sample",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      {/* <head>
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta http-equiv="Pragma" content="no-cache" />
+        <meta http-equiv="Expires" content="0" />
+      </head> */}
+      <body className={`${poppins.variable} antialiased`}>
+        <ApolloWrapper>
+        {children}
+        </ApolloWrapper>
+      </body>
+    </html>
+  );
+}

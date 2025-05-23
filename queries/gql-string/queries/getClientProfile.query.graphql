@@ -1,0 +1,51 @@
+query ClientGetProfile {
+  clientGetProfile {
+    user {
+      id
+      name
+      phone
+      email
+      profile_picture
+      role
+      status
+      country
+      lab_type
+
+
+  
+      father_name
+      cnic
+    }
+    applicantInfo {
+      id
+      user_id
+      company_name
+      company_address
+      company_country
+      company_province
+      company_city
+      factory_telephone
+      factory_address
+      factory_country
+      factory_province
+      factory_city
+      office_telephone
+      office_managing_director_name
+      contact_person_name
+      contact_person_phone
+      contact_person_telephone
+      contact_person_email
+      registered_with_chamber
+      registration_number
+      registration_year
+      member_of_association
+      membership_name
+      membership_number
+      membership_year
+      sales_network_regions
+      company_brochure
+      product_brochure
+      user_agreement
+    }
+  }
+}

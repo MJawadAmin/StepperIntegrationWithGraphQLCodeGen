@@ -1,0 +1,6 @@
+mutation ClientGoToDashboard($productId: String!) {
+  clientGoToDashboard(product_id: $productId) {
+    message
+    token
+  }
+}

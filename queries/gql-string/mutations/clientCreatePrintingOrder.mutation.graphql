@@ -1,0 +1,6 @@
+mutation ClientCreatePrintingOrder($input: ClientCreatePrintingOrderInput!) {
+  clientCreatePrintingOrder(input: $input) {
+    success
+    message
+  }
+}

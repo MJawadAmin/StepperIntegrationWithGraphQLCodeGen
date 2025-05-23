@@ -1,0 +1,15 @@
+query ClientGetAllNews($page: Int, $limit: Int, $search: String, $sort: String, $sortBy: String, $sortOrder: String) {
+  clientGetAllNews(page: $page, limit: $limit, search: $search, sort: $sort, sortBy: $sortBy, sortOrder: $sortOrder) {
+    totalCount
+    currentPage
+    totalPages
+    news {
+      type
+      content
+      createdAt
+      id
+      title
+      updatedAt
+    }
+  }
+}

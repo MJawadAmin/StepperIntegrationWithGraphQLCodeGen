@@ -1,0 +1,6 @@
+mutation ClientSignup($name: String!, $phone: String!, $password: String!, $email: String!) {
+  clientSignup(name: $name, phone: $phone, password: $password, email: $email) {
+    message
+    success
+  }
+}

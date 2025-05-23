@@ -1,0 +1,47 @@
+@import "tailwindcss";
+/* @tailwind base;
+@tailwind components; */
+@tailwind utilities;
+
+
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+ * {
+  box-sizing: border-box;
+}
+body {
+  font-family: 'Poppins', sans-serif;
+}
+.nav-active {
+  color: #f5631f !important;
+}
+.shadow-login {    
+  box-shadow: 0px 0px 4px 0px rgba(0,0,0,0.15);
+}
+/* Custom scrollbar styles */
+::-webkit-scrollbar {
+  width: 4px;  /* Vertical scrollbar width */
+  height: 4px; /* Horizontal scrollbar height */
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1; 
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1; 
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8; 
+}
+
+/* Optional: Use overlay scrollbars that don't take up space */
+/* html {
+  overflow: overlay;
+} */

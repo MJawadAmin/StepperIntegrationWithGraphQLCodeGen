@@ -1,0 +1,8 @@
+query PublicVerifySticker($qr: String!) {
+  publicVerifySticker(qr: $qr) {
+    success
+    message
+    qr_count
+    quantity
+  }
+}

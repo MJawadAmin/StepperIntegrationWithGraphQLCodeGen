@@ -1,0 +1,50 @@
+query ClientGetgetAllCertificates(
+  $productId: String!
+  $page: Int!
+  $limit: Int!
+  $filter: CertificateFilterInput
+  $sortBy: String
+  $sortOrder: String
+) {
+  clientGetgetAllCertificates(
+    product_id: $productId
+    page: $page
+    limit: $limit
+    filter: $filter
+    sortBy: $sortBy
+    sortOrder: $sortOrder
+  ) {
+    certificates {
+      id
+      User {
+        id
+        name
+        email
+      }
+      ApplicantInfo {
+        id
+        company_name
+        company_country
+        company_address
+      }
+      ModelInfo {
+        id
+        model_name
+        size
+        colour
+        rating
+      }
+      Product {
+        id
+        name
+      }
+      status
+      expiry_date
+      createdAt
+      updatedAt
+    }
+    count
+    totalPages
+    currentPage
+  }
+}

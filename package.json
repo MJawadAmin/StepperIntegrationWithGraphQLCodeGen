@@ -1,0 +1,51 @@
+{
+  "name": "neeca-sample",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "generate": "graphql-codegen --config codegen.yml"
+  },
+  "dependencies": {
+    "@apollo/client": "^3.12.10",
+    "@headlessui/react": "^2.2.0",
+    "@heroicons/react": "^2.2.0",
+    "@material-tailwind/react": "^2.1.10",
+    "@tailwindcss/postcss": "^4.0.3",
+    "@tanstack/react-query": "^5.76.2",
+    "autoprefixer": "^10.4.20",
+    "country-state-city": "^3.2.1",
+    "graphql": "^16.10.0",
+    "lodash.isequal": "^4.5.0",
+    "next": "^15.3.2",
+    "react": "^19.0.0",
+    "react-country-state-city": "^1.1.11",
+    "react-dom": "^19.0.0",
+    "react-hot-toast": "^2.5.2",
+    "react-international-phone": "^4.5.0",
+    "react-phone-input-2": "^2.15.1",
+    "react-scrollspy-navigation": "^2.0.6",
+    "react-select": "^5.10.0",
+    "react-toastify": "^11.0.5",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@graphql-codegen/cli": "^5.0.6",
+    "@graphql-codegen/typescript": "^4.1.6",
+    "@graphql-codegen/typescript-operations": "^4.6.1",
+    "@graphql-codegen/typescript-react-apollo": "^4.3.2",
+    "@types/lodash.isequal": "^4.5.8",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9.27.0",
+    "eslint-config-next": "15.1.6",
+    "postcss": "^8.5.1",
+    "tailwindcss": "^4.0.3",
+    "typescript": "^5"
+  }
+}

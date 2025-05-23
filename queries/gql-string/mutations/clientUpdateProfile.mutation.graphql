@@ -1,0 +1,10 @@
+mutation ClientUpdateProfile($userProfile: UpdateUserProfileInput) {
+  clientUpdateProfile(userProfile: $userProfile) {
+    id
+    email
+    token
+    status
+    success
+    message
+  }
+}

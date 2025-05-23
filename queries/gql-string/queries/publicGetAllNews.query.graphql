@@ -1,0 +1,15 @@
+query PublicGetAllNews($page: Int, $limit: Int, $search: String, $sort: String, $sortBy: String, $sortOrder: String) {
+  publicGetAllNews(page: $page, limit: $limit, search: $search, sort: $sort, sortBy: $sortBy, sortOrder: $sortOrder) {
+    totalCount
+    currentPage
+    totalPages
+    news {
+      id
+      title
+      content
+      type
+      createdAt
+      updatedAt
+    }
+  }
+}

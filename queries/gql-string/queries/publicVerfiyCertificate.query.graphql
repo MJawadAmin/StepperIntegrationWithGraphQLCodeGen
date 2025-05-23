@@ -1,0 +1,5 @@
+query PublicVerifyCertificate($publicVerifyCertificateId: String!) {
+  PublicVerifyCertificate(id: $publicVerifyCertificateId) {
+    status
+  }
+}

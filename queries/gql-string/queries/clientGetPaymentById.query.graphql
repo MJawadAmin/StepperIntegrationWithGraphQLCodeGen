@@ -1,0 +1,16 @@
+query ClientGetPaymentByIdUniqueChange($paymentId: String!) {
+  clientGetPaymentById(payment_id: $paymentId) {
+    payment {
+      id
+      user_id
+      product_id
+      modelinfo_id
+      payment_type
+      amount
+      payment_date
+      pay_order_number
+      demand_draft
+      status
+    }
+  }
+}

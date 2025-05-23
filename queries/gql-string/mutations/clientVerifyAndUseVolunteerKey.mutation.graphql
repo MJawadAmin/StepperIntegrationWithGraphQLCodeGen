@@ -1,0 +1,6 @@
+mutation ClientVerifyAndUseVolunteerKey($registrationKey: String!) {
+  clientVerifyAndUseVolunteerKey(registrationKey: $registrationKey) {
+    message
+    success
+  }
+}

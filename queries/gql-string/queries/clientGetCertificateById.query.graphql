@@ -1,0 +1,31 @@
+query ClientGetCertificateById($clientGetCertificateByIdId: String!) {
+  ClientGetCertificateById(id: $clientGetCertificateByIdId) {
+    id
+    User {
+      id
+      name
+      email
+    }
+    ApplicantInfo {
+      id
+      company_name
+      company_country
+      company_address
+    }
+    ModelInfo {
+      id
+      model_name
+      size
+      colour
+      rating
+    }
+    Product {
+      id
+      name
+    }
+    status
+    expiry_date
+    createdAt
+    updatedAt
+  }
+}

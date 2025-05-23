@@ -1,0 +1,15 @@
+mutation ClientLogin($email: String!, $password: String!) {
+  clientLogin(email: $email, password: $password) {
+    email
+    id
+    message
+    token
+    success
+    status
+  }
+}
+
+
+
+
+

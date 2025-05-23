@@ -1,0 +1,10 @@
+query PublicGetNewsById($publicGetNewsByIdId: String!) {
+  publicGetNewsById(id: $publicGetNewsByIdId) {
+    id
+    title
+    content
+    type
+    createdAt
+    updatedAt
+  }
+}
